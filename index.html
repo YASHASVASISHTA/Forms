@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio Builder | Create Your Professional Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary: #6C63FF;
@@ -515,29 +511,27 @@
         </div>
     </div>
 
-    <script>
-        // Firebase configuration
-       // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-storage.js";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyD_y73d2k6xRFhgUiz8je7MqMN-xCefhfc",
-  authDomain: "chatapp-cfadc.firebaseapp.com",
-  projectId: "chatapp-cfadc",
-  storageBucket: "chatapp-cfadc.firebasestorage.app",
-  messagingSenderId: "87944373517",
-  appId: "1:87944373517:web:836ccf0218552a35983c44"
-};
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_y73d2k6xRFhgUiz8je7MqMN-xCefhfc",
+            authDomain: "chatapp-cfadc.firebaseapp.com",
+            projectId: "chatapp-cfadc",
+            storageBucket: "chatapp-cfadc.firebasestorage.app",
+            messagingSenderId: "87944373517",
+            appId: "1:87944373517:web:836ccf0218552a35983c44"
+        };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // Modal functionality
         const modal = document.getElementById('portfolioFormModal');
@@ -989,33 +983,31 @@ const app = initializeApp(firebaseConfig);
                 };
                 
                 // Upload files to Firebase Storage
-                const uploadFile = async (file, fieldName) => {
-                    if (!file) return null;
-                    const storageRef = storage.ref(`portfolios/${Date.now()}_${file.name}`);
-                    await storageRef.put(file);
-                    return await storageRef.getDownloadURL();
+                const uploadFile = async (fileInput, fieldName) => {
+                    if (!fileInput || !fileInput.files[0]) return null;
+                    const file = fileInput.files[0];
+                    const storageRef = ref(storage, `portfolios/${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    return await getDownloadURL(storageRef);
                 };
                 
                 // Upload profile photo
-                if (formData.get('profilePhoto')) {
-                    portfolioData.basicInfo.profilePhoto = await uploadFile(
-                        document.getElementById('profilePhoto').files[0], 
-                        'profilePhoto'
-                    );
-                }
+                portfolioData.basicInfo.profilePhoto = await uploadFile(
+                    document.getElementById('profilePhoto'), 
+                    'profilePhoto'
+                );
                 
                 // Upload education image
-                if (formData.get('educationImage')) {
-                    portfolioData.education.educationImage = await uploadFile(
-                        document.getElementById('educationImage').files[0], 
-                        'educationImage'
-                    );
-                }
+                portfolioData.education.educationImage = await uploadFile(
+                    document.getElementById('educationImage'), 
+                    'educationImage'
+                );
                 
                 // Process dynamic sections
                 // Projects
                 const projectTitles = formData.getAll('projectTitle[]');
                 if (projectTitles.length > 0) {
+                    const projectImageInputs = document.querySelectorAll('input[name="projectImage[]"]');
                     for (let i = 0; i < projectTitles.length; i++) {
                         const project = {
                             title: projectTitles[i],
@@ -1023,15 +1015,8 @@ const app = initializeApp(firebaseConfig);
                             technologies: formData.getAll('projectTech[]')[i],
                             date: formData.getAll('projectDate[]')[i],
                             link: formData.getAll('projectLink[]')[i],
-                            image: null
+                            image: await uploadFile(projectImageInputs[i], `projectImage_${i}`)
                         };
-                        
-                        // Upload project image if exists
-                        const projectImageInput = document.querySelectorAll('input[name="projectImage[]"]')[i];
-                        if (projectImageInput && projectImageInput.files[0]) {
-                            project.image = await uploadFile(projectImageInput.files[0], `projectImage_${i}`);
-                        }
-                        
                         portfolioData.projects.push(project);
                     }
                 }
@@ -1039,6 +1024,7 @@ const app = initializeApp(firebaseConfig);
                 // Experience
                 const jobTitles = formData.getAll('jobTitle[]');
                 if (jobTitles.length > 0) {
+                    const companyLogoInputs = document.querySelectorAll('input[name="companyLogo[]"]');
                     for (let i = 0; i < jobTitles.length; i++) {
                         const experience = {
                             jobTitle: jobTitles[i],
@@ -1046,15 +1032,8 @@ const app = initializeApp(firebaseConfig);
                             duration: formData.getAll('jobDuration[]')[i],
                             website: formData.getAll('companyWebsite[]')[i],
                             description: formData.getAll('jobDesc[]')[i],
-                            logo: null
+                            logo: await uploadFile(companyLogoInputs[i], `companyLogo_${i}`)
                         };
-                        
-                        // Upload company logo if exists
-                        const companyLogoInput = document.querySelectorAll('input[name="companyLogo[]"]')[i];
-                        if (companyLogoInput && companyLogoInput.files[0]) {
-                            experience.logo = await uploadFile(companyLogoInput.files[0], `companyLogo_${i}`);
-                        }
-                        
                         portfolioData.experience.push(experience);
                     }
                 }
@@ -1062,6 +1041,7 @@ const app = initializeApp(firebaseConfig);
                 // Certifications
                 const certNames = formData.getAll('certName[]');
                 if (certNames.length > 0) {
+                    const certImageInputs = document.querySelectorAll('input[name="certImage[]"]');
                     for (let i = 0; i < certNames.length; i++) {
                         const certification = {
                             name: certNames[i],
@@ -1069,15 +1049,8 @@ const app = initializeApp(firebaseConfig);
                             date: formData.getAll('certDate[]')[i],
                             credentialId: formData.getAll('certId[]')[i],
                             link: formData.getAll('certLink[]')[i],
-                            image: null
+                            image: await uploadFile(certImageInputs[i], `certImage_${i}`)
                         };
-                        
-                        // Upload cert image if exists
-                        const certImageInput = document.querySelectorAll('input[name="certImage[]"]')[i];
-                        if (certImageInput && certImageInput.files[0]) {
-                            certification.image = await uploadFile(certImageInput.files[0], `certImage_${i}`);
-                        }
-                        
                         portfolioData.certifications.push(certification);
                     }
                 }
@@ -1085,21 +1058,15 @@ const app = initializeApp(firebaseConfig);
                 // Achievements
                 const achievementTitles = formData.getAll('achievementTitle[]');
                 if (achievementTitles.length > 0) {
+                    const achievementImageInputs = document.querySelectorAll('input[name="achievementImage[]"]');
                     for (let i = 0; i < achievementTitles.length; i++) {
                         const achievement = {
                             title: achievementTitles[i],
                             description: formData.getAll('achievementDesc[]')[i],
                             date: formData.getAll('achievementDate[]')[i],
                             link: formData.getAll('achievementLink[]')[i],
-                            image: null
+                            image: await uploadFile(achievementImageInputs[i], `achievementImage_${i}`)
                         };
-                        
-                        // Upload achievement image if exists
-                        const achievementImageInput = document.querySelectorAll('input[name="achievementImage[]"]')[i];
-                        if (achievementImageInput && achievementImageInput.files[0]) {
-                            achievement.image = await uploadFile(achievementImageInput.files[0], `achievementImage_${i}`);
-                        }
-                        
                         portfolioData.achievements.push(achievement);
                     }
                 }
@@ -1107,6 +1074,7 @@ const app = initializeApp(firebaseConfig);
                 // Testimonials
                 const testimonialNames = formData.getAll('testimonialName[]');
                 if (testimonialNames.length > 0) {
+                    const testimonialPhotoInputs = document.querySelectorAll('input[name="testimonialPhoto[]"]');
                     for (let i = 0; i < testimonialNames.length; i++) {
                         const testimonial = {
                             name: testimonialNames[i],
@@ -1114,29 +1082,20 @@ const app = initializeApp(firebaseConfig);
                             company: formData.getAll('testimonialCompany[]')[i],
                             linkedin: formData.getAll('testimonialLinkedIn[]')[i],
                             text: formData.getAll('testimonialText[]')[i],
-                            photo: null
+                            photo: await uploadFile(testimonialPhotoInputs[i], `testimonialPhoto_${i}`)
                         };
-                        
-                        // Upload testimonial photo if exists
-                        const testimonialPhotoInput = document.querySelectorAll('input[name="testimonialPhoto[]"]')[i];
-                        if (testimonialPhotoInput && testimonialPhotoInput.files[0]) {
-                            testimonial.photo = await uploadFile(testimonialPhotoInput.files[0], `testimonialPhoto_${i}`);
-                        }
-                        
                         portfolioData.testimonials.push(testimonial);
                     }
                 }
                 
                 // Upload skills image if exists
-                if (formData.get('skillsImage')) {
-                    portfolioData.skills.image = await uploadFile(
-                        document.querySelector('input[name="skillsImage"]').files[0], 
-                        'skillsImage'
-                    );
-                }
+                portfolioData.skills.image = await uploadFile(
+                    document.querySelector('input[name="skillsImage"]'), 
+                    'skillsImage'
+                );
                 
                 // Save to Firestore
-                await db.collection('portfolios').add(portfolioData);
+                await addDoc(collection(db, 'portfolios'), portfolioData);
                 
                 // Show success message
                 modal.style.display = 'none';
