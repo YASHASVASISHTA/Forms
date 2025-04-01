@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio Builder | Create Your Professional Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary: #6C63FF;
@@ -55,6 +59,13 @@
             font-weight: 700;
             color: var(--primary);
             text-decoration: none;
+        }
+        
+        .powered-by {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--gray);
         }
         
         /* Hero Section */
@@ -256,6 +267,55 @@
             transform: translateY(-3px);
         }
         
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .success-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .success-content h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .success-content p {
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .hero h1 {
@@ -280,6 +340,10 @@
         <div class="container">
             <nav>
                 <a href="#" class="logo">PortfolioBuilder</a>
+                <div class="powered-by">
+                    <span>Powered by</span>
+                    <span style="margin-left: 8px; font-weight: 600; color: var(--primary);">LogicLink</span>
+                </div>
             </nav>
         </div>
     </header>
@@ -437,16 +501,42 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="submit-btn">Generate Portfolio</button>
+                <button type="submit" class="submit-btn" id="submitBtn">Submit Portfolio</button>
             </form>
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <h2>Thank You for Your Submission!</h2>
+            <p>You'll be getting your portfolio website to your email within 48 hours. Thank you!</p>
+            <button class="btn" onclick="closeSuccessModal()">Close</button>
+        </div>
+    </div>
+
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
         // Modal functionality
         const modal = document.getElementById('portfolioFormModal');
+        const successModal = document.getElementById('successModal');
         const startBtn = document.getElementById('startBuildingBtn');
         const closeBtn = document.getElementById('closeModalBtn');
+        const submitBtn = document.getElementById('submitBtn');
         
         startBtn.addEventListener('click', () => {
             modal.style.display = 'block';
@@ -457,6 +547,11 @@
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         });
+        
+        function closeSuccessModal() {
+            successModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
         
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -838,31 +933,219 @@
         }
         
         // Form submission
-        document.getElementById('portfolioBuilderForm').addEventListener('submit', function(e) {
+        document.getElementById('portfolioBuilderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Collect all form data
-            const formData = new FormData(this);
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
             
-            // Here you would typically send the data to your server
-            // For demonstration, we'll just show an alert
-            alert('Portfolio information submitted successfully!\n\nIn a real implementation, this data would be processed to generate your portfolio website.');
-            
-            // Close the modal after submission
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            
-            // Reset the form
-            this.reset();
-            
-            // Clear dynamic sections
-            document.getElementById('dynamicSections').innerHTML = '';
-            
-            // In a real implementation, you would:
-            // 1. Send the data to your server (using fetch or AJAX)
-            // 2. Process the data to generate the portfolio
-            // 3. Either show the generated portfolio or send it via email
-            // 4. Optionally provide a download link for the portfolio
+            try {
+                // Get form data
+                const formData = new FormData(this);
+                const portfolioData = {
+                    basicInfo: {
+                        fullName: formData.get('fullName'),
+                        profession: formData.get('profession'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        bio: formData.get('bio'),
+                        profilePhoto: null
+                    },
+                    education: {
+                        college: formData.get('college'),
+                        degree: formData.get('degree'),
+                        graduationYear: formData.get('graduationYear'),
+                        educationImage: null
+                    },
+                    socialLinks: {
+                        linkedin: formData.get('linkedin'),
+                        github: formData.get('github'),
+                        behance: formData.get('behance'),
+                        dribbble: formData.get('dribbble'),
+                        portfolio: formData.get('portfolio'),
+                        otherSocial: formData.get('otherSocial')
+                    },
+                    projects: [],
+                    experience: [],
+                    skills: {
+                        list: formData.get('skills'),
+                        level: formData.get('skillLevel'),
+                        image: null
+                    },
+                    certifications: [],
+                    achievements: [],
+                    testimonials: [],
+                    createdAt: new Date(),
+                    status: 'pending'
+                };
+                
+                // Upload files to Firebase Storage
+                const uploadFile = async (file, fieldName) => {
+                    if (!file) return null;
+                    const storageRef = storage.ref(`portfolios/${Date.now()}_${file.name}`);
+                    await storageRef.put(file);
+                    return await storageRef.getDownloadURL();
+                };
+                
+                // Upload profile photo
+                if (formData.get('profilePhoto')) {
+                    portfolioData.basicInfo.profilePhoto = await uploadFile(
+                        document.getElementById('profilePhoto').files[0], 
+                        'profilePhoto'
+                    );
+                }
+                
+                // Upload education image
+                if (formData.get('educationImage')) {
+                    portfolioData.education.educationImage = await uploadFile(
+                        document.getElementById('educationImage').files[0], 
+                        'educationImage'
+                    );
+                }
+                
+                // Process dynamic sections
+                // Projects
+                const projectTitles = formData.getAll('projectTitle[]');
+                if (projectTitles.length > 0) {
+                    for (let i = 0; i < projectTitles.length; i++) {
+                        const project = {
+                            title: projectTitles[i],
+                            description: formData.getAll('projectDesc[]')[i],
+                            technologies: formData.getAll('projectTech[]')[i],
+                            date: formData.getAll('projectDate[]')[i],
+                            link: formData.getAll('projectLink[]')[i],
+                            image: null
+                        };
+                        
+                        // Upload project image if exists
+                        const projectImageInput = document.querySelectorAll('input[name="projectImage[]"]')[i];
+                        if (projectImageInput && projectImageInput.files[0]) {
+                            project.image = await uploadFile(projectImageInput.files[0], `projectImage_${i}`);
+                        }
+                        
+                        portfolioData.projects.push(project);
+                    }
+                }
+                
+                // Experience
+                const jobTitles = formData.getAll('jobTitle[]');
+                if (jobTitles.length > 0) {
+                    for (let i = 0; i < jobTitles.length; i++) {
+                        const experience = {
+                            jobTitle: jobTitles[i],
+                            company: formData.getAll('company[]')[i],
+                            duration: formData.getAll('jobDuration[]')[i],
+                            website: formData.getAll('companyWebsite[]')[i],
+                            description: formData.getAll('jobDesc[]')[i],
+                            logo: null
+                        };
+                        
+                        // Upload company logo if exists
+                        const companyLogoInput = document.querySelectorAll('input[name="companyLogo[]"]')[i];
+                        if (companyLogoInput && companyLogoInput.files[0]) {
+                            experience.logo = await uploadFile(companyLogoInput.files[0], `companyLogo_${i}`);
+                        }
+                        
+                        portfolioData.experience.push(experience);
+                    }
+                }
+                
+                // Certifications
+                const certNames = formData.getAll('certName[]');
+                if (certNames.length > 0) {
+                    for (let i = 0; i < certNames.length; i++) {
+                        const certification = {
+                            name: certNames[i],
+                            organization: formData.getAll('certOrg[]')[i],
+                            date: formData.getAll('certDate[]')[i],
+                            credentialId: formData.getAll('certId[]')[i],
+                            link: formData.getAll('certLink[]')[i],
+                            image: null
+                        };
+                        
+                        // Upload cert image if exists
+                        const certImageInput = document.querySelectorAll('input[name="certImage[]"]')[i];
+                        if (certImageInput && certImageInput.files[0]) {
+                            certification.image = await uploadFile(certImageInput.files[0], `certImage_${i}`);
+                        }
+                        
+                        portfolioData.certifications.push(certification);
+                    }
+                }
+                
+                // Achievements
+                const achievementTitles = formData.getAll('achievementTitle[]');
+                if (achievementTitles.length > 0) {
+                    for (let i = 0; i < achievementTitles.length; i++) {
+                        const achievement = {
+                            title: achievementTitles[i],
+                            description: formData.getAll('achievementDesc[]')[i],
+                            date: formData.getAll('achievementDate[]')[i],
+                            link: formData.getAll('achievementLink[]')[i],
+                            image: null
+                        };
+                        
+                        // Upload achievement image if exists
+                        const achievementImageInput = document.querySelectorAll('input[name="achievementImage[]"]')[i];
+                        if (achievementImageInput && achievementImageInput.files[0]) {
+                            achievement.image = await uploadFile(achievementImageInput.files[0], `achievementImage_${i}`);
+                        }
+                        
+                        portfolioData.achievements.push(achievement);
+                    }
+                }
+                
+                // Testimonials
+                const testimonialNames = formData.getAll('testimonialName[]');
+                if (testimonialNames.length > 0) {
+                    for (let i = 0; i < testimonialNames.length; i++) {
+                        const testimonial = {
+                            name: testimonialNames[i],
+                            position: formData.getAll('testimonialPosition[]')[i],
+                            company: formData.getAll('testimonialCompany[]')[i],
+                            linkedin: formData.getAll('testimonialLinkedIn[]')[i],
+                            text: formData.getAll('testimonialText[]')[i],
+                            photo: null
+                        };
+                        
+                        // Upload testimonial photo if exists
+                        const testimonialPhotoInput = document.querySelectorAll('input[name="testimonialPhoto[]"]')[i];
+                        if (testimonialPhotoInput && testimonialPhotoInput.files[0]) {
+                            testimonial.photo = await uploadFile(testimonialPhotoInput.files[0], `testimonialPhoto_${i}`);
+                        }
+                        
+                        portfolioData.testimonials.push(testimonial);
+                    }
+                }
+                
+                // Upload skills image if exists
+                if (formData.get('skillsImage')) {
+                    portfolioData.skills.image = await uploadFile(
+                        document.querySelector('input[name="skillsImage"]').files[0], 
+                        'skillsImage'
+                    );
+                }
+                
+                // Save to Firestore
+                await db.collection('portfolios').add(portfolioData);
+                
+                // Show success message
+                modal.style.display = 'none';
+                successModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // Reset the form
+                this.reset();
+                document.getElementById('dynamicSections').innerHTML = '';
+                
+            } catch (error) {
+                console.error('Error submitting portfolio:', error);
+                alert('There was an error submitting your portfolio. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Portfolio';
+            }
         });
     </script>
 </body>
