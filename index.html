@@ -1,1 +1,869 @@
-inde
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Builder | Create Your Professional Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #564FC9;
+            --secondary: #FF6584;
+            --dark: #2D3748;
+            --light: #F7FAFC;
+            --gray: #A0AEC0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+            background-color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 180px 0 100px;
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            text-align: center;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray);
+            margin-bottom: 40px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+        
+        /* Form Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 40px;
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .form-section {
+            margin-bottom: 40px;
+        }
+        
+        .form-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+        }
+        
+        .required:after {
+            content: " *";
+            color: var(--secondary);
+        }
+        
+        .add-section-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .section-item {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .remove-section {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--secondary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+        }
+        
+        .section-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .section-option {
+            background: #f0f7ff;
+            border: 1px dashed var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            width: calc(33% - 10px);
+        }
+        
+        .section-option:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .section-option i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 30px;
+        }
+        
+        .submit-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .section-option {
+                width: calc(50% - 10px);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .section-option {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">PortfolioBuilder</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Create Your Professional Portfolio</h1>
+                <p>Build a stunning portfolio website tailored to your unique skills and experience</p>
+                <button id="startBuildingBtn" class="btn">Fill Personal Information</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Form Modal -->
+    <div id="portfolioFormModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            
+            <form id="portfolioBuilderForm">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h2 class="form-title">Basic Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="fullName" class="required">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profession" class="required">Profession</label>
+                        <input type="text" id="profession" name="profession" required placeholder="e.g. Graphic Designer, Software Engineer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" class="required">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profilePhoto" class="required">Professional Photo</label>
+                        <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Short Bio</label>
+                        <textarea id="bio" name="bio" placeholder="Tell us about yourself in 2-3 sentences"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Education Section -->
+                <div class="form-section">
+                    <h2 class="form-title">Education</h2>
+                    
+                    <div class="form-group">
+                        <label for="college" class="required">College/University</label>
+                        <input type="text" id="college" name="college" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="degree" class="required">Degree</label>
+                        <input type="text" id="degree" name="degree" required placeholder="e.g. B.Sc Computer Science">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="graduationYear">Graduation Year</label>
+                        <input type="text" id="graduationYear" name="graduationYear">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="educationImage">Education Certificate (optional)</label>
+                        <input type="file" id="educationImage" name="educationImage" accept="image/*">
+                    </div>
+                </div>
+                
+                <!-- Social Links Section -->
+                <div class="form-section">
+                    <h2 class="form-title">Social Links</h2>
+                    
+                    <div class="form-group">
+                        <label for="linkedin" class="required">LinkedIn Profile</label>
+                        <input type="url" id="linkedin" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="github">GitHub (for developers)</label>
+                        <input type="url" id="github" name="github" placeholder="https://github.com/yourprofile">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="behance">Behance (for designers)</label>
+                        <input type="url" id="behance" name="behance" placeholder="https://behance.net/yourprofile">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dribbble">Dribbble (for designers)</label>
+                        <input type="url" id="dribbble" name="dribbble" placeholder="https://dribbble.com/yourprofile">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="portfolio">Personal Website (if any)</label>
+                        <input type="url" id="portfolio" name="portfolio">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="otherSocial">Other Social Media</label>
+                        <input type="url" id="otherSocial" name="otherSocial" placeholder="https://example.com/yourprofile">
+                    </div>
+                </div>
+                
+                <!-- Dynamic Sections -->
+                <div id="dynamicSections"></div>
+                
+                <!-- Add New Section Options -->
+                <div class="form-section">
+                    <h2 class="form-title">Add More Sections</h2>
+                    <p>Customize your portfolio by adding relevant sections</p>
+                    
+                    <div class="section-options">
+                        <div class="section-option" onclick="addSection('projects')">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Projects</span>
+                        </div>
+                        
+                        <div class="section-option" onclick="addSection('experience')">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Work Experience</span>
+                        </div>
+                        
+                        <div class="section-option" onclick="addSection('skills')">
+                            <i class="fas fa-star"></i>
+                            <span>Skills</span>
+                        </div>
+                        
+                        <div class="section-option" onclick="addSection('certifications')">
+                            <i class="fas fa-certificate"></i>
+                            <span>Certifications</span>
+                        </div>
+                        
+                        <div class="section-option" onclick="addSection('achievements')">
+                            <i class="fas fa-trophy"></i>
+                            <span>Achievements</span>
+                        </div>
+                        
+                        <div class="section-option" onclick="addSection('testimonials')">
+                            <i class="fas fa-quote-left"></i>
+                            <span>Testimonials</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">Generate Portfolio</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('portfolioFormModal');
+        const startBtn = document.getElementById('startBuildingBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        
+        startBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+        
+        // Dynamic section templates
+        const sectionTemplates = {
+            projects: `
+                <div class="section-item" data-section="projects">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Project</h3>
+                    <div class="form-group">
+                        <label class="required">Project Title</label>
+                        <input type="text" name="projectTitle[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Project Description</label>
+                        <textarea name="projectDesc[]" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Project Image</label>
+                        <input type="file" name="projectImage[]" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Project Link (optional)</label>
+                        <input type="url" name="projectLink[]" placeholder="https://example.com/project">
+                    </div>
+                    <div class="form-group">
+                        <label>Technologies Used (comma separated)</label>
+                        <input type="text" name="projectTech[]" placeholder="HTML, CSS, JavaScript, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Project Date</label>
+                        <input type="text" name="projectDate[]" placeholder="e.g. May 2023">
+                    </div>
+                    <button type="button" class="add-section-btn" onclick="addAnotherProject(this)">
+                        <i class="fas fa-plus"></i> Add Another Project
+                    </button>
+                </div>
+            `,
+            experience: `
+                <div class="section-item" data-section="experience">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Work Experience</h3>
+                    <div class="form-group">
+                        <label class="required">Job Title</label>
+                        <input type="text" name="jobTitle[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Company</label>
+                        <input type="text" name="company[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Duration</label>
+                        <input type="text" name="jobDuration[]" placeholder="e.g. Jan 2020 - Present" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company Logo (optional)</label>
+                        <input type="file" name="companyLogo[]" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Website</label>
+                        <input type="url" name="companyWebsite[]" placeholder="https://company.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Description</label>
+                        <textarea name="jobDesc[]" required></textarea>
+                    </div>
+                    <button type="button" class="add-section-btn" onclick="addAnotherExperience(this)">
+                        <i class="fas fa-plus"></i> Add Another Experience
+                    </button>
+                </div>
+            `,
+            skills: `
+                <div class="section-item" data-section="skills">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Skills</h3>
+                    <div class="form-group">
+                        <label class="required">Skills (comma separated)</label>
+                        <input type="text" name="skills" placeholder="e.g. Photoshop, Illustrator, UI/UX Design" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Skills Image (optional)</label>
+                        <input type="file" name="skillsImage" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Proficiency Level</label>
+                        <select name="skillLevel" required>
+                            <option value="">Select level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            certifications: `
+                <div class="section-item" data-section="certifications">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Certification</h3>
+                    <div class="form-group">
+                        <label class="required">Certification Name</label>
+                        <input type="text" name="certName[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Issuing Organization</label>
+                        <input type="text" name="certOrg[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Date Earned</label>
+                        <input type="text" name="certDate[]" placeholder="e.g. June 2022" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Credential ID (if any)</label>
+                        <input type="text" name="certId[]" placeholder="Certificate ID or License number">
+                    </div>
+                    <div class="form-group">
+                        <label>Certificate Image</label>
+                        <input type="file" name="certImage[]" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Verification Link</label>
+                        <input type="url" name="certLink[]" placeholder="https://certificate-verification.com/your-cert">
+                    </div>
+                    <button type="button" class="add-section-btn" onclick="addAnotherCertification(this)">
+                        <i class="fas fa-plus"></i> Add Another Certification
+                    </button>
+                </div>
+            `,
+            achievements: `
+                <div class="section-item" data-section="achievements">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Achievement</h3>
+                    <div class="form-group">
+                        <label class="required">Achievement Title</label>
+                        <input type="text" name="achievementTitle[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Description</label>
+                        <textarea name="achievementDesc[]" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Date</label>
+                        <input type="text" name="achievementDate[]" placeholder="e.g. March 2022" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Achievement Image</label>
+                        <input type="file" name="achievementImage[]" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Verification Link</label>
+                        <input type="url" name="achievementLink[]" placeholder="https://example.com/achievement-proof">
+                    </div>
+                    <button type="button" class="add-section-btn" onclick="addAnotherAchievement(this)">
+                        <i class="fas fa-plus"></i> Add Another Achievement
+                    </button>
+                </div>
+            `,
+            testimonials: `
+                <div class="section-item" data-section="testimonials">
+                    <button class="remove-section" onclick="removeSection(this)">&times;</button>
+                    <h3>Testimonial</h3>
+                    <div class="form-group">
+                        <label class="required">Client/Colleague Name</label>
+                        <input type="text" name="testimonialName[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Their Position</label>
+                        <input type="text" name="testimonialPosition[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company/Organization</label>
+                        <input type="text" name="testimonialCompany[]">
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Photo (optional)</label>
+                        <input type="file" name="testimonialPhoto[]" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Testimonial Text</label>
+                        <textarea name="testimonialText[]" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn Profile (optional)</label>
+                        <input type="url" name="testimonialLinkedIn[]" placeholder="https://linkedin.com/in/person">
+                    </div>
+                    <button type="button" class="add-section-btn" onclick="addAnotherTestimonial(this)">
+                        <i class="fas fa-plus"></i> Add Another Testimonial
+                    </button>
+                </div>
+            `
+        };
+        
+        // Function to add new sections
+        function addSection(sectionType) {
+            const container = document.getElementById('dynamicSections');
+            const div = document.createElement('div');
+            div.innerHTML = sectionTemplates[sectionType];
+            container.appendChild(div);
+            
+            // Scroll to the newly added section
+            div.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Function to remove sections
+        function removeSection(button) {
+            button.closest('.section-item').remove();
+        }
+        
+        // Functions to add more items within sections
+        function addAnotherProject(button) {
+            const projectSection = button.closest('.section-item');
+            const newProject = document.createElement('div');
+            newProject.innerHTML = `
+                <hr style="margin: 20px 0; border-color: #eee;">
+                <div class="form-group">
+                    <label class="required">Project Title</label>
+                    <input type="text" name="projectTitle[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Project Description</label>
+                    <textarea name="projectDesc[]" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Project Image</label>
+                    <input type="file" name="projectImage[]" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Project Link (optional)</label>
+                    <input type="url" name="projectLink[]" placeholder="https://example.com/project">
+                </div>
+                <div class="form-group">
+                    <label>Technologies Used (comma separated)</label>
+                    <input type="text" name="projectTech[]" placeholder="HTML, CSS, JavaScript, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Project Date</label>
+                    <input type="text" name="projectDate[]" placeholder="e.g. May 2023">
+                </div>
+            `;
+            button.parentNode.insertBefore(newProject, button);
+            newProject.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function addAnotherExperience(button) {
+            const section = button.closest('.section-item');
+            const newItem = document.createElement('div');
+            newItem.innerHTML = `
+                <hr style="margin: 20px 0; border-color: #eee;">
+                <div class="form-group">
+                    <label class="required">Job Title</label>
+                    <input type="text" name="jobTitle[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Company</label>
+                    <input type="text" name="company[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Duration</label>
+                    <input type="text" name="jobDuration[]" placeholder="e.g. Jan 2020 - Present" required>
+                </div>
+                <div class="form-group">
+                    <label>Company Logo (optional)</label>
+                    <input type="file" name="companyLogo[]" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Company Website</label>
+                    <input type="url" name="companyWebsite[]" placeholder="https://company.com">
+                </div>
+                <div class="form-group">
+                    <label class="required">Description</label>
+                    <textarea name="jobDesc[]" required></textarea>
+                </div>
+            `;
+            button.parentNode.insertBefore(newItem, button);
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function addAnotherCertification(button) {
+            const section = button.closest('.section-item');
+            const newItem = document.createElement('div');
+            newItem.innerHTML = `
+                <hr style="margin: 20px 0; border-color: #eee;">
+                <div class="form-group">
+                    <label class="required">Certification Name</label>
+                    <input type="text" name="certName[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Issuing Organization</label>
+                    <input type="text" name="certOrg[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Date Earned</label>
+                    <input type="text" name="certDate[]" placeholder="e.g. June 2022" required>
+                </div>
+                <div class="form-group">
+                    <label>Credential ID (if any)</label>
+                    <input type="text" name="certId[]" placeholder="Certificate ID or License number">
+                </div>
+                <div class="form-group">
+                    <label>Certificate Image</label>
+                    <input type="file" name="certImage[]" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Verification Link</label>
+                    <input type="url" name="certLink[]" placeholder="https://certificate-verification.com/your-cert">
+                </div>
+            `;
+            button.parentNode.insertBefore(newItem, button);
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function addAnotherAchievement(button) {
+            const section = button.closest('.section-item');
+            const newItem = document.createElement('div');
+            newItem.innerHTML = `
+                <hr style="margin: 20px 0; border-color: #eee;">
+                <div class="form-group">
+                    <label class="required">Achievement Title</label>
+                    <input type="text" name="achievementTitle[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Description</label>
+                    <textarea name="achievementDesc[]" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="required">Date</label>
+                    <input type="text" name="achievementDate[]" placeholder="e.g. March 2022" required>
+                </div>
+                <div class="form-group">
+                    <label>Achievement Image</label>
+                    <input type="file" name="achievementImage[]" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Verification Link</label>
+                    <input type="url" name="achievementLink[]" placeholder="https://example.com/achievement-proof">
+                </div>
+            `;
+            button.parentNode.insertBefore(newItem, button);
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function addAnotherTestimonial(button) {
+            const section = button.closest('.section-item');
+            const newItem = document.createElement('div');
+            newItem.innerHTML = `
+                <hr style="margin: 20px 0; border-color: #eee;">
+                <div class="form-group">
+                    <label class="required">Client/Colleague Name</label>
+                    <input type="text" name="testimonialName[]" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Their Position</label>
+                    <input type="text" name="testimonialPosition[]" required>
+                </div>
+                <div class="form-group">
+                    <label>Company/Organization</label>
+                    <input type="text" name="testimonialCompany[]">
+                </div>
+                <div class="form-group">
+                    <label>Profile Photo (optional)</label>
+                    <input type="file" name="testimonialPhoto[]" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label class="required">Testimonial Text</label>
+                    <textarea name="testimonialText[]" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>LinkedIn Profile (optional)</label>
+                    <input type="url" name="testimonialLinkedIn[]" placeholder="https://linkedin.com/in/person">
+                </div>
+            `;
+            button.parentNode.insertBefore(newItem, button);
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Form submission
+        document.getElementById('portfolioBuilderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect all form data
+            const formData = new FormData(this);
+            
+            // Here you would typically send the data to your server
+            // For demonstration, we'll just show an alert
+            alert('Portfolio information submitted successfully!\n\nIn a real implementation, this data would be processed to generate your portfolio website.');
+            
+            // Close the modal after submission
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Reset the form
+            this.reset();
+            
+            // Clear dynamic sections
+            document.getElementById('dynamicSections').innerHTML = '';
+            
+            // In a real implementation, you would:
+            // 1. Send the data to your server (using fetch or AJAX)
+            // 2. Process the data to generate the portfolio
+            // 3. Either show the generated portfolio or send it via email
+            // 4. Optionally provide a download link for the portfolio
+        });
+    </script>
+</body>
+</html>
