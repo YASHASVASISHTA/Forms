@@ -6,6 +6,7 @@
     <title>Portfolio Builder | Create Your Professional Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* All your existing CSS remains exactly the same */
         :root {
             --primary: #6C63FF;
             --primary-dark: #564FC9;
@@ -360,12 +361,14 @@
         <div class="modal-content">
             <span class="close-btn" id="closeModalBtn">&times;</span>
             
-            <form id="portfolioBuilderForm" action="https://formsubmit.co/contact.logiclinksolutions@gmail.com" method="POST" enctype="multipart/form-data">
+            <form id="portfolioBuilderForm" action="https://formsubmit.co/ajax/yashasutube@gmail.com" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="_subject" value="New Portfolio Submission">
-                <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_template" value="basic">
+                <input type="hidden" name="_autoresponse" value="Thank you for submitting your portfolio information! This is a confirmation that we've received your details.">
                 <input type="hidden" name="_captcha" value="false">
-                <input type="hidden" name="_next" value="">
+                <input type="hidden" name="_next" value="https://yourwebsite.com/thank-you.html">
                 
+                <!-- All form sections remain exactly the same -->
                 <div class="form-section">
                     <h2 class="form-title">Basic Information</h2>
                     
@@ -502,7 +505,7 @@
     <div class="success-modal" id="successModal">
         <div class="success-content">
             <h2>Thank You for Your Submission!</h2>
-            <p>We'll review your portfolio details and get back to you soon.</p>
+            <p>We've sent a confirmation email to your inbox.</p>
             <button class="btn" onclick="closeSuccessModal()">Close</button>
         </div>
     </div>
@@ -938,26 +941,37 @@
         }
         
         form.addEventListener('submit', function(e) {
+            e.preventDefault();
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
             
-            // Set the success URL for redirect after submission
-            const nextUrl = window.location.href.split('?')[0] + '?success=true';
-            document.querySelector('input[name="_next"]').value = nextUrl;
+            // Using FormSubmit's AJAX endpoint
+            const formData = new FormData(form);
             
-            // FormSubmit will handle the submission and redirect
-            // We'll show the success modal when the page reloads with ?success=true
-        });
-        
-        // Check for success parameter on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'true') {
-                successModal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                // Clear the URL parameter
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    successModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    form.reset();
+                } else {
+                    throw new Error('Form submission failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting your form. Please try again.');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Portfolio';
+            });
         });
     </script>
 </body>
